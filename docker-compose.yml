@@ -1,0 +1,39 @@
+# data-be 로컬 개발용. 프론트(nginx)는 data-fe 저장소에서 따로 띄워요.
+# DB 선택은 .env에서 한다
+#   내 PC DB: COMPOSE_PROFILES=local-db  → db 컨테이너를 같이 띄움
+#   공용 DB : COMPOSE_PROFILES=           → db 컨테이너 없이 DATABASE_URL의 공용 DB에 연결
+services:
+  db:
+    image: postgres:16
+    profiles: ["local-db"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:${DB_HOST_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: .
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false   # 공용 DB를 쓸 때는 db 컨테이너가 없어도 시작
+    ports:
+      - "${BACKEND_HOST_PORT:-8000}:8000"
+    volumes:
+      - ./app:/srv/app/app
+      - ./alembic:/srv/app/alembic
+      - ./tests:/srv/app/tests
+    command: ["sh", "start.sh", "--reload"]
+
+volumes:
+  db_data:
