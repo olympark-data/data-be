@@ -16,5 +16,4 @@ def health() -> ApiResponse[dict]:
 @router.get("/db")
 def health_db(db: Session = Depends(get_db)) -> ApiResponse[dict]:
     db.execute(text("SELECT 1"))
-    postgis = db.execute(text("SELECT extversion FROM pg_extension WHERE extname = 'postgis'")).scalar()
-    return ApiResponse.ok({"db": "ok", "postgis": postgis})
+    return ApiResponse.ok({"db": "ok"})

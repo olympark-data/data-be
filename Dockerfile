@@ -1,12 +1,13 @@
-FROM python:3.12-slim
+햣 FROM python:3.12.16-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /srv/app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 잠금 파일(requirements.lock)로 설치해서 누가 언제 빌드해도 같은 버전이 깔리게 한다
+COPY requirements.lock .
+RUN pip install --no-cache-dir -r requirements.lock
 
 COPY . .
 

@@ -4,7 +4,7 @@
 #   공용 DB : COMPOSE_PROFILES=           → db 컨테이너 없이 DATABASE_URL의 공용 DB에 연결
 services:
   db:
-    image: postgis/postgis:16-3.4
+    image: postgres:16
     profiles: ["local-db"]
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
