@@ -1,0 +1,20 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.DS_Store
+.idea/
+.vscode/
+app/analysis/artifacts/*
+!app/analysis/artifacts/.gitkeep
+
+# AI 도구 파일 (Claude Code, oh-my-claudecode 등)
+.omc/
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.cursor/
+.codex/
+.gemini/
