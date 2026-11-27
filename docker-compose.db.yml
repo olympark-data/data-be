@@ -17,7 +17,8 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      # postgres가 받는 주소(DB_LISTEN_ADDRESS)로 검사한다. 127.0.0.1로 하면 서버에서는 응답이 없다.
+      test: ["CMD-SHELL", "pg_isready -h $${DB_LISTEN_ADDRESS:-127.0.0.1} -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 6
