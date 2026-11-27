@@ -1,0 +1,40 @@
+# 서버(backend VM)용. 로컬 개발은 docker-compose.yml을 쓴다.
+# 이미지는 GitHub Actions가 GHCR에 올린 것을 받아서 쓴다 (서버에서 빌드하지 않음).
+#
+# 실행 (backend VM의 /opt/olympark/data-be 에서):
+#   docker compose -f docker-compose.server.yml pull
+#   docker compose -f docker-compose.server.yml run --rm migrate   # 마이그레이션, backend-1에서 한 번만
+#   docker compose -f docker-compose.server.yml up -d backend
+#
+# network_mode: host 를 쓰는 이유: 도커가 포트를 열 때 VM 방화벽(firewalld)을 건너뛰지 않게 하려고.
+# 8000번은 VM 방화벽에서 frontend(10.10.1.20)만 허용한다.
+
+x-common: &common
+  image: ghcr.io/olympark-data/data-be:${IMAGE_TAG:-dev}
+  env_file: .env
+  network_mode: host
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  backend:
+    <<: *common
+    environment:
+      RUN_MIGRATIONS: "false"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3).status == 200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  # 배포 때 한 번만 실행하는 마이그레이션. 평소에는 뜨지 않는다.
+  migrate:
+    <<: *common
+    profiles: ["migrate"]
+    restart: "no"
+    command: ["alembic", "upgrade", "head"]
